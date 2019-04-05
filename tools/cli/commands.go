@@ -1113,6 +1113,8 @@ func FixLunaInBatch(c *cli.Context) {
 		excludes[wid] = rid
 	}
 
+	fmt.Println("num of excludes:", len(excludes))
+
 	file, err := os.Open(inFile)
 	if err != nil {
 		ErrorAndExit("Open failed", err)
