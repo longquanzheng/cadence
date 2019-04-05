@@ -1105,11 +1105,11 @@ func FixLunaInBatch(c *cli.Context) {
 			continue
 		}
 		cols := strings.Split(line, separator)
-		if len(cols) < 2 {
+		if len(cols) < 1 {
 			ErrorAndExit("Split failed", fmt.Errorf("line %v has less than 2 cols separated by comma, only %v ", idx, len(cols)))
 		}
 		wid := strings.TrimSpace(cols[0])
-		rid := strings.TrimSpace(cols[1])
+		rid := "not-needed"
 		excludes[wid] = rid
 	}
 
