@@ -1121,6 +1121,7 @@ func FixLuna(c *cli.Context) {
 			ErrorAndExit("TerminateWorkflowExecution failed", err)
 		} else {
 			fmt.Println("terminate wid, rid,", wid, currentRunID)
+			time.Sleep(time.Second * 3)
 		}
 	}
 
