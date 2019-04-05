@@ -1107,7 +1107,19 @@ func FixLunaInBatch(c *cli.Context) {
 		fmt.Printf("Start processing line %v ...\n", idx)
 		wid := strings.TrimSpace(cols[0])
 		rid := strings.TrimSpace(cols[1])
-		doFixLuna(c, domain, wid, rid)
+
+		var err error
+		for i := 0; i < 3; i++ {
+			err = doFixLuna(c, domain, wid, rid)
+			if err == nil {
+				break
+			}
+			fmt.Println("failed and retry...: ", wid, rid, err)
+			time.Sleep(time.Second * 5)
+		}
+		if err != nil {
+			fmt.Println("[ERROR] failed processing: ", wid, rid)
+		}
 	}
 
 }
@@ -1121,7 +1133,12 @@ func FixLuna(c *cli.Context) {
 	doFixLuna(c, domain, wid, rid)
 }
 
-func doFixLuna(c *cli.Context, domain, wid, rid string) {
+func printErrorAndReturn(msg string, err error) error {
+	fmt.Println(msg)
+	return err
+}
+
+func doFixLuna(c *cli.Context, domain, wid, rid string) error {
 	ctx, cancel := newContext(c)
 	defer cancel()
 
@@ -1133,13 +1150,13 @@ func doFixLuna(c *cli.Context, domain, wid, rid string) {
 		},
 	})
 	if err != nil {
-		ErrorAndExit("DescribeWorkflowExecution failed", err)
+		return printErrorAndReturn("DescribeWorkflowExecution failed", err)
 	}
 
 	currentRunID := resp.WorkflowExecutionInfo.Execution.GetRunId()
 	if currentRunID == rid {
-		fmt.Println("current run is the reset run: ", rid)
-		return
+		fmt.Println("current run is the reset run: ", wid, rid)
+		return nil
 	}
 	if resp.WorkflowExecutionInfo.CloseStatus == nil || resp.WorkflowExecutionInfo.CloseTime == nil {
 		// terminate current
@@ -1153,7 +1170,7 @@ func doFixLuna(c *cli.Context, domain, wid, rid string) {
 			Identity: common.StringPtr("longer"),
 		})
 		if err != nil {
-			ErrorAndExit("TerminateWorkflowExecution failed", err)
+			return printErrorAndReturn("TerminateWorkflowExecution failed", err)
 		} else {
 			fmt.Println("terminate wid, rid,", wid, currentRunID)
 			time.Sleep(time.Second * 3)
@@ -1174,7 +1191,7 @@ func doFixLuna(c *cli.Context, domain, wid, rid string) {
 	for {
 		resp, err := frontendClient.GetWorkflowExecutionHistory(ctx, req)
 		if err != nil {
-			ErrorAndExit("GetWorkflowExecutionHistory failed", err)
+			return printErrorAndReturn("GetWorkflowExecutionHistory failed", err)
 		}
 		for _, e := range resp.GetHistory().GetEvents() {
 			if e.GetEventType() == shared.EventTypeDecisionTaskCompleted {
@@ -1187,7 +1204,7 @@ func doFixLuna(c *cli.Context, domain, wid, rid string) {
 			break
 		}
 	}
-	fmt.Println("lastDecisionFinishID for wid/rid is,", wid, rid, lastDecisionFinishID)
+	fmt.Println("lastDecisionFinishID:", wid, rid, lastDecisionFinishID)
 
 	resp2, err := frontendClient.ResetWorkflowExecution(ctx, &shared.ResetWorkflowExecutionRequest{
 		Domain: common.StringPtr(domain),
@@ -1201,9 +1218,10 @@ func doFixLuna(c *cli.Context, domain, wid, rid string) {
 	})
 
 	if err != nil {
-		ErrorAndExit("ResetWorkflowExecution failed", err)
+		return printErrorAndReturn("ResetWorkflowExecution failed", err)
 	}
 	fmt.Println("new runID for wid/rid is ,", wid, rid, resp2.GetRunId())
+	return nil
 }
 
 // CompleteActivity completes an activity
