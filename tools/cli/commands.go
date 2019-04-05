@@ -1229,7 +1229,7 @@ func doFixLuna(c *cli.Context, domain, wid, rid string) error {
 			return printErrorAndReturn("TerminateWorkflowExecution failed, need retry...", err)
 		} else {
 			fmt.Println("terminate wid, rid,", wid, currentRunID)
-			time.Sleep(time.Second * 60)
+			time.Sleep(time.Second * 10)
 		}
 	}
 
