@@ -1082,6 +1082,95 @@ func ResetWorkflow(c *cli.Context) {
 }
 
 // CompleteActivity completes an activity
+func FixLuna(c *cli.Context) {
+	domain := getRequiredGlobalOption(c, FlagDomain)
+	wid := getRequiredOption(c, FlagWorkflowID)
+	rid := getRequiredOption(c, FlagRunID)
+
+	ctx, cancel := newContext(c)
+	defer cancel()
+
+	frontendClient := cFactory.ServerFrontendClient(c)
+	resp, err := frontendClient.DescribeWorkflowExecution(ctx, &shared.DescribeWorkflowExecutionRequest{
+		Domain: common.StringPtr(domain),
+		Execution: &shared.WorkflowExecution{
+			WorkflowId: common.StringPtr(wid),
+		},
+	})
+	if err != nil {
+		ErrorAndExit("DescribeWorkflowExecution failed", err)
+	}
+
+	currentRunID := resp.WorkflowExecutionInfo.Execution.GetRunId()
+	if currentRunID == rid {
+		fmt.Println("current run is the reset run: ", rid)
+		return
+	}
+	if resp.WorkflowExecutionInfo.CloseStatus == nil || resp.WorkflowExecutionInfo.CloseTime == nil {
+		// terminate current
+		err := frontendClient.TerminateWorkflowExecution(ctx, &shared.TerminateWorkflowExecutionRequest{
+			Domain: common.StringPtr(domain),
+			WorkflowExecution: &shared.WorkflowExecution{
+				WorkflowId: common.StringPtr(wid),
+				RunId:      common.StringPtr(currentRunID),
+			},
+			Reason:   common.StringPtr("fix bad deployment"),
+			Identity: common.StringPtr("longer"),
+		})
+		if err != nil {
+			ErrorAndExit("TerminateWorkflowExecution failed", err)
+		} else {
+			fmt.Println("terminate wid, rid,", wid, currentRunID)
+		}
+	}
+
+	req := &shared.GetWorkflowExecutionHistoryRequest{
+		Domain: common.StringPtr(domain),
+		Execution: &shared.WorkflowExecution{
+			WorkflowId: common.StringPtr(wid),
+			RunId:      common.StringPtr(currentRunID),
+		},
+		MaximumPageSize: common.Int32Ptr(1000),
+		NextPageToken:   nil,
+	}
+
+	lastDecisionFinishID := int64(0)
+	for {
+		resp, err := frontendClient.GetWorkflowExecutionHistory(ctx, req)
+		if err != nil {
+			ErrorAndExit("GetWorkflowExecutionHistory failed", err)
+		}
+		for _, e := range resp.GetHistory().GetEvents() {
+			if e.GetEventType() == shared.EventTypeDecisionTaskCompleted {
+				lastDecisionFinishID = e.GetEventId()
+			}
+		}
+		if len(resp.NextPageToken) != 0 {
+			req.NextPageToken = resp.NextPageToken
+		} else {
+			break
+		}
+	}
+	fmt.Sprintf("lastDecisionFinishID for wid/rid (%v/%v) is %v \n", wid, rid, lastDecisionFinishID)
+
+	resp2, err := frontendClient.ResetWorkflowExecution(ctx, &shared.ResetWorkflowExecutionRequest{
+		Domain: common.StringPtr(domain),
+		WorkflowExecution: &shared.WorkflowExecution{
+			WorkflowId: common.StringPtr(wid),
+			RunId:      common.StringPtr(rid),
+		},
+		DecisionFinishEventId: common.Int64Ptr(lastDecisionFinishID),
+		RequestId:             common.StringPtr(uuid.New()),
+		Reason:                common.StringPtr("reset to fix bad deployment"),
+	})
+
+	if err != nil {
+		ErrorAndExit("ResetWorkflowExecution failed", err)
+	}
+	fmt.Sprintf("new runID for wid/rid (%v/%v) is %v \n", wid, rid, resp2.GetRunId())
+}
+
+// CompleteActivity completes an activity
 func CompleteActivity(c *cli.Context) {
 	domain := getRequiredGlobalOption(c, FlagDomain)
 	wid := getRequiredOption(c, FlagWorkflowID)

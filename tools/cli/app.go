@@ -55,6 +55,23 @@ func NewCliApp() *cli.App {
 	}
 	app.Commands = []cli.Command{
 		{
+			Name:  "luna",
+			Usage: "fix luna",
+			Flags: []cli.Flag{
+				cli.StringFlag{
+					Name:  FlagWorkflowIDWithAlias,
+					Usage: "WorkflowID",
+				},
+				cli.StringFlag{
+					Name:  FlagRunIDWithAlias,
+					Usage: "RunID",
+				},
+			},
+			Action: func(c *cli.Context) {
+				FixLuna(c)
+			},
+		},
+		{
 			Name:        "domain",
 			Aliases:     []string{"d"},
 			Usage:       "Operate cadence domain",
