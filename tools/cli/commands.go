@@ -35,6 +35,8 @@ import (
 	"strings"
 	"time"
 
+	"code.uber.internal/devexp/cadence-tools/.tmp/.go/goroot/src/math/rand"
+
 	"github.com/fatih/color"
 	"github.com/olekukonko/tablewriter"
 	"github.com/pborman/uuid"
@@ -1097,7 +1099,7 @@ func processFixLuna(c *cli.Context, domain string, wes chan shared.WorkflowExecu
 					break
 				}
 				fmt.Println("failed and retry...: ", wid, rid, err)
-				time.Sleep(time.Second * 5)
+				time.Sleep(time.Millisecond * time.Duration(rand.Intn(2000)))
 			}
 			if err != nil {
 				fmt.Println("[ERROR] failed processing: ", wid, rid)
