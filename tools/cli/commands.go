@@ -1129,7 +1129,7 @@ func FixLuna(c *cli.Context) {
 		Domain: common.StringPtr(domain),
 		Execution: &shared.WorkflowExecution{
 			WorkflowId: common.StringPtr(wid),
-			RunId:      common.StringPtr(currentRunID),
+			RunId:      common.StringPtr(rid),
 		},
 		MaximumPageSize: common.Int32Ptr(1000),
 		NextPageToken:   nil,
@@ -1152,7 +1152,7 @@ func FixLuna(c *cli.Context) {
 			break
 		}
 	}
-	fmt.Sprintf("lastDecisionFinishID for wid/rid (%v/%v) is %v \n", wid, rid, lastDecisionFinishID)
+	fmt.Printf("lastDecisionFinishID for wid/rid (%v/%v) is %v \n", wid, rid, lastDecisionFinishID)
 
 	resp2, err := frontendClient.ResetWorkflowExecution(ctx, &shared.ResetWorkflowExecutionRequest{
 		Domain: common.StringPtr(domain),
@@ -1168,7 +1168,7 @@ func FixLuna(c *cli.Context) {
 	if err != nil {
 		ErrorAndExit("ResetWorkflowExecution failed", err)
 	}
-	fmt.Sprintf("new runID for wid/rid (%v/%v) is %v \n", wid, rid, resp2.GetRunId())
+	fmt.Printf("new runID for wid/rid (%v/%v) is %v \n", wid, rid, resp2.GetRunId())
 }
 
 // CompleteActivity completes an activity
