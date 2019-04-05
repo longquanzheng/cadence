@@ -77,7 +77,11 @@ func NewCliApp() *cli.App {
 			Flags: []cli.Flag{
 				cli.StringFlag{
 					Name:  FlagInputFileWithAlias,
-					Usage: "Input file to use, if not present assumes piping",
+					Usage: "Input file to use",
+				},
+				cli.StringFlag{
+					Name:  FlagInputFile2,
+					Usage: "Another input file to use",
 				},
 			},
 			Action: func(c *cli.Context) {

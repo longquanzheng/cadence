@@ -1085,14 +1085,40 @@ func ResetWorkflow(c *cli.Context) {
 func FixLunaInBatch(c *cli.Context) {
 	domain := getRequiredGlobalOption(c, FlagDomain)
 	inFile := getRequiredOption(c, FlagInputFile)
+	inFile2 := getRequiredOption(c, FlagInputFile2)
+
+	// read exclude
+	file2, err := os.Open(inFile2)
+	if err != nil {
+		ErrorAndExit("Open failed2", err)
+	}
+	defer file2.Close()
+	scanner := bufio.NewScanner(file2)
+	idx := 0
+	excludes := map[string]string{}
+	for scanner.Scan() {
+		idx++
+		line := strings.TrimSpace(scanner.Text())
+		if len(line) == 0 {
+			fmt.Printf("line %v is empty, skipped\n", idx)
+			continue
+		}
+		cols := strings.Split(line, ",")
+		if len(cols) < 2 {
+			ErrorAndExit("Split failed", fmt.Errorf("line %v has less than 2 cols separated by comma, only %v ", idx, len(cols)))
+		}
+		wid := strings.TrimSpace(cols[0])
+		rid := strings.TrimSpace(cols[1])
+		excludes[wid] = rid
+	}
+
 	file, err := os.Open(inFile)
 	if err != nil {
 		ErrorAndExit("Open failed", err)
 	}
 	defer file.Close()
-
-	scanner := bufio.NewScanner(file)
-	idx := 0
+	scanner = bufio.NewScanner(file)
+	idx = 0
 	for scanner.Scan() {
 		idx++
 		line := strings.TrimSpace(scanner.Text())
@@ -1107,6 +1133,12 @@ func FixLunaInBatch(c *cli.Context) {
 		fmt.Printf("Start processing line %v ...\n", idx)
 		wid := strings.TrimSpace(cols[0])
 		rid := strings.TrimSpace(cols[1])
+
+		_, ok := excludes[wid]
+		if ok {
+			fmt.Println("already processed, skip: ", wid, rid)
+			continue
+		}
 
 		var err error
 		for i := 0; i < 3; i++ {
@@ -1170,7 +1202,7 @@ func doFixLuna(c *cli.Context, domain, wid, rid string) error {
 			Identity: common.StringPtr("longer"),
 		})
 		if err != nil {
-			return printErrorAndReturn("TerminateWorkflowExecution failed", err)
+			return printErrorAndReturn("TerminateWorkflowExecution failed, need retry...", err)
 		} else {
 			fmt.Println("terminate wid, rid,", wid, currentRunID)
 			time.Sleep(time.Second * 3)
