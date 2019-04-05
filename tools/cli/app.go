@@ -87,6 +87,11 @@ func NewCliApp() *cli.App {
 					Name:  FlagInputSeparator,
 					Usage: "Separator for input file",
 				},
+				cli.IntFlag{
+					Name:  FlagParallism,
+					Value: 1,
+					Usage: "batch in parallel",
+				},
 			},
 			Action: func(c *cli.Context) {
 				FixLunaInBatch(c)

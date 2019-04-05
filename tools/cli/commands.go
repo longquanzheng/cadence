@@ -1082,11 +1082,41 @@ func ResetWorkflow(c *cli.Context) {
 	prettyPrintJSONObject(resp)
 }
 
+func processFixLuna(c *cli.Context, domain string, wes chan shared.WorkflowExecution) {
+	for {
+		select {
+		case we := <-wes:
+			fmt.Println("received: ", we.GetWorkflowId(), we.GetRunId())
+			//doFixLuna(c, domain, we.GetWorkflowId(), we.GetRunId())
+			wid := we.GetWorkflowId()
+			rid := we.GetRunId()
+			var err error
+			for i := 0; i < 3; i++ {
+				err = doFixLuna(c, domain, wid, rid)
+				if err == nil {
+					break
+				}
+				fmt.Println("failed and retry...: ", wid, rid, err)
+				time.Sleep(time.Second * 5)
+			}
+			if err != nil {
+				fmt.Println("[ERROR] failed processing: ", wid, rid)
+			}
+		}
+	}
+}
+
 func FixLunaInBatch(c *cli.Context) {
 	domain := getRequiredGlobalOption(c, FlagDomain)
 	inFile := getRequiredOption(c, FlagInputFile)
 	inFile2 := getRequiredOption(c, FlagInputFile2)
 	separator := getRequiredOption(c, FlagInputSeparator)
+	parallel := c.Int(FlagParallism)
+
+	wes := make(chan shared.WorkflowExecution)
+	for i := 0; i < parallel; i++ {
+		go processFixLuna(c, domain, wes)
+	}
 
 	// read exclude
 	file2, err := os.Open(inFile2)
@@ -1143,20 +1173,11 @@ func FixLunaInBatch(c *cli.Context) {
 			continue
 		}
 
-		var err error
-		for i := 0; i < 3; i++ {
-			err = doFixLuna(c, domain, wid, rid)
-			if err == nil {
-				break
-			}
-			fmt.Println("failed and retry...: ", wid, rid, err)
-			time.Sleep(time.Second * 5)
-		}
-		if err != nil {
-			fmt.Println("[ERROR] failed processing: ", wid, rid)
+		wes <- shared.WorkflowExecution{
+			WorkflowId: common.StringPtr(wid),
+			RunId:      common.StringPtr(rid),
 		}
 	}
-
 }
 
 // CompleteActivity completes an activity
