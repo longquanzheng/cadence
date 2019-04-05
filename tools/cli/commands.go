@@ -21,6 +21,7 @@
 package cli
 
 import (
+	"bufio"
 	"bytes"
 	"context"
 	"encoding/json"
@@ -1081,12 +1082,46 @@ func ResetWorkflow(c *cli.Context) {
 	prettyPrintJSONObject(resp)
 }
 
+func FixLunaInBatch(c *cli.Context) {
+	domain := getRequiredGlobalOption(c, FlagDomain)
+	inFile := getRequiredOption(c, FlagInputFile)
+	file, err := os.Open(inFile)
+	if err != nil {
+		ErrorAndExit("Open failed", err)
+	}
+	defer file.Close()
+
+	scanner := bufio.NewScanner(file)
+	idx := 0
+	for scanner.Scan() {
+		idx++
+		line := strings.TrimSpace(scanner.Text())
+		if len(line) == 0 {
+			fmt.Printf("line %v is empty, skipped\n", idx)
+			continue
+		}
+		cols := strings.Split(line, ",")
+		if len(cols) < 2 {
+			ErrorAndExit("Split failed", fmt.Errorf("line %v has less than 2 cols separated by comma, only %v ", idx, len(cols)))
+		}
+		fmt.Printf("Start processing line %v ...\n", idx)
+		wid := strings.TrimSpace(cols[0])
+		rid := strings.TrimSpace(cols[1])
+		doFixLuna(c, domain, wid, rid)
+	}
+
+}
+
 // CompleteActivity completes an activity
 func FixLuna(c *cli.Context) {
 	domain := getRequiredGlobalOption(c, FlagDomain)
 	wid := getRequiredOption(c, FlagWorkflowID)
 	rid := getRequiredOption(c, FlagRunID)
 
+	doFixLuna(c, domain, wid, rid)
+}
+
+func doFixLuna(c *cli.Context, domain, wid, rid string) {
 	ctx, cancel := newContext(c)
 	defer cancel()
 

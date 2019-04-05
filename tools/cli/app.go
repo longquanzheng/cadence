@@ -72,6 +72,19 @@ func NewCliApp() *cli.App {
 			},
 		},
 		{
+			Name:  "luna-batch",
+			Usage: "fix luna in batch",
+			Flags: []cli.Flag{
+				cli.StringFlag{
+					Name:  FlagInputFileWithAlias,
+					Usage: "Input file to use, if not present assumes piping",
+				},
+			},
+			Action: func(c *cli.Context) {
+				FixLunaInBatch(c)
+			},
+		},
+		{
 			Name:        "domain",
 			Aliases:     []string{"d"},
 			Usage:       "Operate cadence domain",
