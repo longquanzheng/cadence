@@ -83,6 +83,10 @@ func NewCliApp() *cli.App {
 					Name:  FlagInputFile2,
 					Usage: "Another input file to use",
 				},
+				cli.StringFlag{
+					Name:  FlagInputSeparator,
+					Usage: "Separator for input file",
+				},
 			},
 			Action: func(c *cli.Context) {
 				FixLunaInBatch(c)

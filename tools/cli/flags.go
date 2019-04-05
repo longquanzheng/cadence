@@ -69,6 +69,7 @@ const (
 	FlagInputFile                   = "input_file"
 	FlagInputFileWithAlias          = FlagInputFile + ", if"
 	FlagInputFile2                  = "input_file2"
+	FlagInputSeparator              = "input_separator"
 	FlagInputTopic                  = "input_topic"
 	FlagInputTopicWithAlias         = FlagInputTopic + ", it"
 	FlagHostFile                    = "host_file"

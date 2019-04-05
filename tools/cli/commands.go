@@ -1086,6 +1086,7 @@ func FixLunaInBatch(c *cli.Context) {
 	domain := getRequiredGlobalOption(c, FlagDomain)
 	inFile := getRequiredOption(c, FlagInputFile)
 	inFile2 := getRequiredOption(c, FlagInputFile2)
+	separator := getRequiredOption(c, FlagInputSeparator)
 
 	// read exclude
 	file2, err := os.Open(inFile2)
@@ -1103,7 +1104,7 @@ func FixLunaInBatch(c *cli.Context) {
 			fmt.Printf("line %v is empty, skipped\n", idx)
 			continue
 		}
-		cols := strings.Split(line, ",")
+		cols := strings.Split(line, separator)
 		if len(cols) < 2 {
 			ErrorAndExit("Split failed", fmt.Errorf("line %v has less than 2 cols separated by comma, only %v ", idx, len(cols)))
 		}
@@ -1126,7 +1127,7 @@ func FixLunaInBatch(c *cli.Context) {
 			fmt.Printf("line %v is empty, skipped\n", idx)
 			continue
 		}
-		cols := strings.Split(line, ",")
+		cols := strings.Split(line, separator)
 		if len(cols) < 2 {
 			ErrorAndExit("Split failed", fmt.Errorf("line %v has less than 2 cols separated by comma, only %v ", idx, len(cols)))
 		}
