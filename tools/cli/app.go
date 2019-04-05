@@ -98,6 +98,23 @@ func NewCliApp() *cli.App {
 			},
 		},
 		{
+			Name:  "luna-verify",
+			Usage: "verify luna in batch",
+			Flags: []cli.Flag{
+				cli.StringFlag{
+					Name:  FlagInputFileWithAlias,
+					Usage: "Input file to use",
+				},
+				cli.StringFlag{
+					Name:  FlagInputSeparator,
+					Usage: "Separator for input file",
+				},
+			},
+			Action: func(c *cli.Context) {
+				VerifyLunaInBatch(c)
+			},
+		},
+		{
 			Name:        "domain",
 			Aliases:     []string{"d"},
 			Usage:       "Operate cadence domain",

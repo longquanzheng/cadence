@@ -1108,6 +1108,57 @@ func processFixLuna(c *cli.Context, domain string, wes chan shared.WorkflowExecu
 	}
 }
 
+func VerifyLunaInBatch(c *cli.Context) {
+	domain := getRequiredGlobalOption(c, FlagDomain)
+	inFile := getRequiredOption(c, FlagInputFile)
+	separator := getRequiredOption(c, FlagInputSeparator)
+
+	file, err := os.Open(inFile)
+	if err != nil {
+		ErrorAndExit("Open failed", err)
+	}
+	defer file.Close()
+	scanner := bufio.NewScanner(file)
+	idx := 0
+	for scanner.Scan() {
+		idx++
+		line := strings.TrimSpace(scanner.Text())
+		if len(line) == 0 {
+			fmt.Printf("line %v is empty, skipped\n", idx)
+			continue
+		}
+		cols := strings.Split(line, separator)
+		if len(cols) < 2 {
+			ErrorAndExit("Split failed", fmt.Errorf("line %v has less than 2 cols separated by comma, only %v ", idx, len(cols)))
+		}
+		fmt.Printf("Start processing line %v ...\n", idx)
+		wid := strings.TrimSpace(cols[0])
+		rid := strings.TrimSpace(cols[1])
+
+		ctx, cancel := newContext(c)
+		defer cancel()
+
+		frontendClient := cFactory.ServerFrontendClient(c)
+		resp, err := frontendClient.DescribeWorkflowExecution(ctx, &shared.DescribeWorkflowExecutionRequest{
+			Domain: common.StringPtr(domain),
+			Execution: &shared.WorkflowExecution{
+				WorkflowId: common.StringPtr(wid),
+				RunId:      common.StringPtr(rid),
+			},
+		})
+		if err != nil {
+			fmt.Println("failed to desc, ", wid, rid, err)
+		} else {
+			if resp.WorkflowExecutionInfo.CloseStatus != nil && resp.WorkflowExecutionInfo.CloseTime != nil {
+				fmt.Println("terminate succ, ", wid, rid)
+			} else {
+				fmt.Println("terminate fail, ", wid, rid)
+			}
+		}
+		time.Sleep(time.Millisecond * 10)
+	}
+}
+
 func FixLunaInBatch(c *cli.Context) {
 	domain := getRequiredGlobalOption(c, FlagDomain)
 	inFile := getRequiredOption(c, FlagInputFile)
