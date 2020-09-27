@@ -173,7 +173,7 @@ func NewEngineWithShardContext(
 	historyClient hc.Client,
 	publicClient workflowserviceclient.Interface,
 	historyEventNotifier events.Notifier,
-	publisher messaging.Producer,
+	_ messaging.Producer,
 	config *config.Config,
 	replicationTaskFetchers replication.TaskFetchers,
 	rawMatchingClient matching.Client,
@@ -284,7 +284,7 @@ func NewEngineWithShardContext(
 	historyEngImpl.eventsReapplier = ndc.NewEventsReapplier(shard.GetMetricsClient(), logger)
 
 	// Only start the replicator processor if valid publisher is passed in
-	if publisher != nil {
+	if shard.GetClusterMetadata().IsGlobalDomainEnabled() {
 		historyEngImpl.replicator = newHistoryReplicator(
 			shard,
 			clock.NewRealTimeSource(),

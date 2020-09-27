@@ -24,6 +24,7 @@ package cli
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/uber/cadence/.gen/go/replicator"
 	"io/ioutil"
 	"strconv"
 	"time"
@@ -108,6 +109,38 @@ func AdminShowWorkflow(c *cli.Context) {
 			ErrorAndExit("Failed to export history data file.", err)
 		}
 	}
+}
+
+// AdminLongCommand is my own test
+func AdminLongCommand(c *cli.Context) {
+	println("haha")
+	adminClient := cFactory.ServerAdminClient(c)
+
+	ctx, cancel := newContext(c)
+	defer cancel()
+
+	resp, err := adminClient.GetReplicationMessages(ctx, &replicator.GetReplicationMessagesRequest{
+		Tokens: []*replicator.ReplicationToken{
+			{
+				ShardID: common.Int32Ptr(0),
+			},
+			{
+				ShardID: common.Int32Ptr(1),
+			},
+			{
+				ShardID: common.Int32Ptr(2),
+			},
+			{
+				ShardID: common.Int32Ptr(3),
+			},
+		},
+		ClusterName: getPtrOrNilIfEmpty("active"),
+	})
+	if err != nil {
+		println(err.Error())
+	}
+	println(resp.String())
+	println(resp.MessagesByShard)
 }
 
 // AdminDescribeWorkflow describe a new workflow execution for admin

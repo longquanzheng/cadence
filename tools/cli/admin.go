@@ -79,6 +79,16 @@ func newAdminWorkflowCommands() []cli.Command {
 			},
 		},
 		{
+			Name:    "longer",
+			Aliases: []string{"long"},
+			Usage:   "my test command",
+			Flags: []cli.Flag{
+			},
+			Action: func(c *cli.Context) {
+				AdminLongCommand(c)
+			},
+		},
+		{
 			Name:    "refresh-tasks",
 			Aliases: []string{"rt"},
 			Usage:   "Refreshes all the tasks of a workflow",
