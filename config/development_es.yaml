@@ -15,8 +15,10 @@ persistence:
     es-visibility:
       elasticsearch:
         url:
-          scheme: "http"
-          host: "127.0.0.1:9200"
+          scheme: "https"
+          host: "es-bb9e.qa.indeed.net:443"
+        username: "bb9e_rw"
+        password: "awQcWcymCoq6YDIj"
         indices:
           visibility: cadence-visibility-dev
 
@@ -118,7 +120,9 @@ kafka:
   clusters:
     test:
       brokers:
-        - 127.0.0.1:9092
+        - tst-playkafka1.indeed.net:9092
+        - tst-playkafka2.indeed.net:9092
+        - tst-playkafka3.indeed.net:9092
   topics:
     cadence-visibility-dev:
       cluster: test
