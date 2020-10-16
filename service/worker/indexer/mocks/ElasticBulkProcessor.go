@@ -21,7 +21,7 @@
 package mocks
 
 import context "context"
-import elastic "github.com/olivere/elastic"
+import elastic "github.com/olivere/elastic/v7"
 
 import mock "github.com/stretchr/testify/mock"
 

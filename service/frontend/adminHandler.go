@@ -28,7 +28,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/olivere/elastic"
+	"github.com/olivere/elastic/v7"
 	"github.com/pborman/uuid"
 
 	"github.com/uber/cadence/.gen/go/admin"

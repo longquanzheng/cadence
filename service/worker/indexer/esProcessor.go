@@ -25,7 +25,7 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/olivere/elastic"
+	"github.com/olivere/elastic/v7"
 	"github.com/uber-go/tally"
 
 	"github.com/uber/cadence/.gen/go/indexer"

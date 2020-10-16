@@ -22,9 +22,10 @@ package elasticsearch
 
 import (
 	"context"
+	"fmt"
 	"time"
 
-	"github.com/olivere/elastic"
+	"github.com/olivere/elastic/v7"
 )
 
 type (
@@ -155,9 +156,9 @@ func (c *elasticWrapper) RunBulkProcessor(ctx context.Context, p *BulkProcessorP
 
 // root is for nested object like Attr property for search attributes.
 func (c *elasticWrapper) PutMapping(ctx context.Context, index, root, key, valueType string) error {
-	body := buildPutMappingBody(root, key, valueType)
-	_, err := c.client.PutMapping().Index(index).Type("_doc").BodyJson(body).Do(ctx)
-	return err
+	//body := buildPutMappingBody(root, key, valueType)
+	//_, err := c.client.PutMapping().Index(index).Type("_doc").BodyJson(body).Do(ctx)
+	return fmt.Errorf("not implemented")
 }
 
 func (c *elasticWrapper) CreateIndex(ctx context.Context, index string) error {
