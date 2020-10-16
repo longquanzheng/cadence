@@ -31,6 +31,8 @@ type (
 	Config struct {
 		URL     url.URL           `yaml:url`     //nolint:govet
 		Indices map[string]string `yaml:indices` //nolint:govet
+		Username string
+		Password string
 	}
 )
 

@@ -22,6 +22,7 @@ package cadence
 
 import (
 	"log"
+	"net/url"
 	"time"
 
 	"go.uber.org/cadence/.gen/go/cadence/workflowserviceclient"
@@ -175,6 +176,7 @@ func (s *server) startService() common.Daemon {
 		}
 
 		params.ESConfig = advancedVisStore.ElasticSearch
+		params.ESConfig.URL.User = url.UserPassword(params.ESConfig.Username, params.ESConfig.Password)
 		esClient, err := elasticsearch.NewClient(params.ESConfig)
 		if err != nil {
 			log.Fatalf("error creating elastic search client: %v", err)
